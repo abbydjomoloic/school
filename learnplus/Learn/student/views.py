@@ -1,16 +1,25 @@
-from django.shortcuts import render,redirect 
+from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from school import models as school_models
 from forum import models as forum_models
 from instructor import models as instructor_models
 from django.db.models import Q
 from chat import models as chat_models
 from django.utils.safestring import mark_safe
+from django.utils.timezone import now
+from django.db import transaction
+from django.contrib import messages
+
 import json
 from django.http import JsonResponse 
+from quiz.models import Quiz, Question, Answer, StudentAnswer, TakenQuiz
 from django.contrib.auth.models import User
 from . import models
 from django.contrib.auth import authenticate, login
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from forum.models import  Reponse  # Adaptez selon vos modèles
 
 
 # Create your views here.
@@ -41,69 +50,9 @@ def index(request):
             return redirect("/admin/")
 
 
-@login_required(login_url = 'login')
-def payment(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
 
-                           }
-                return render(request,'pages/fixed-student-account-billing-payment-information.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-   
-@login_required(login_url = 'login')
-def subscription(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+ 
 
-                           }
-                return render(request,'pages/fixed-student-account-billing-subscription.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-    
-@login_required(login_url = 'login')
-def upgrade(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-account-billing-upgrade.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-    
 
 @login_required(login_url = 'login')
 def edit(request):
@@ -169,70 +118,8 @@ def edit_profile(request):
             return redirect("/admin/")
 
 
-@login_required(login_url = 'login')
-def billing(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+ 
 
-                           }
-                return render(request,'pages/fixed-student-billing.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-    
-# @login_required(login_url = 'login')
-# def browse_courses(request):
-#     if request.user.is_authenticated:
-#         try:
-#             try:
-#                 print("1")
-#                 if request.user.instructor:
-#                     return redirect('dashboard')
-#             except Exception as e:
-#                 print(e)
-#                 print("2")
-#                 if request.user.student_user:
-#                     cours = school_models.Cours.objects.filter(Q(status=True) & Q(chapitre__classe=request.user.student_user.classe))
-#                     datas = {
-#                                 'all_cours' : all_cours ,
-#                            }
-#                 return render(request,'pages/fixed-student-browse-courses.html',datas)
-#         except Exception as e:
-#             print(e)
-#             print("3")
-#             return redirect("/admin/")
-   
-
-@login_required(login_url = 'login')
-def cart(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-cart.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
 
 @login_required(login_url = 'login')
 def courses(request):
@@ -256,47 +143,6 @@ def courses(request):
             print("3")
             return redirect("/admin/")
     
-# @login_required(login_url = 'login')
-# def dashboard(request):
-#     if request.user.is_authenticated:
-#         try:
-#             try:
-#                 print("1")
-#                 if request.user.instructor:
-#                     return redirect('dashboard')
-#             except Exception as e:
-#                 print(e)
-#                 print("2")
-#                 if request.user.student_user:
-#                     datas = {
-
-#                            }
-#                 return render(request,'pages/fixed-student-dashboard.html',datas)
-#         except Exception as e:
-#             print(e)
-#             print("3")
-#             return redirect("/admin/")
-
-@login_required(login_url = 'login')
-def earnings(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-earnings.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
 
 
 
@@ -422,28 +268,7 @@ def help_center(request):
     
 
 @login_required(login_url = 'login')
-def invoice(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
-
-                           }
-                return render(request,'pages/fixed-student-invoice.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-
-@login_required(login_url = 'login')
-def messages(request, classe):
+def messagess(request, classe):
     if request.user.is_authenticated:
         try:
             try:
@@ -519,26 +344,39 @@ def my_courses(request):
             print("3")
             return redirect("/admin/")
 
-@login_required(login_url = 'login')
+@login_required(login_url='login')
 def quiz_list(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+    # Rediriger les instructeurs vers le tableau de bord
+    if hasattr(request.user, 'instructor'):
+        return redirect('dashboard')
+    
+    # Vérifier si l'utilisateur est un étudiant
+    if hasattr(request.user, 'student_user'):
+        student = request.user.student_user
+        quizzes = student.classe.quizzes.filter(status=True)  # Récupérer les quizzes de la classe de l'étudiant
+        
+        # Ajouter une vérification pour savoir si un quiz a déjà été pris
+        quizzes_with_status = []
+        for quiz in quizzes:
+            taken_quiz = quiz.taken_quizzes.filter(student=student).first()
+            has_taken = taken_quiz is not None
+            quizzes_with_status.append({
+                'quiz': quiz,
+                'has_taken': has_taken,
+                'result_url': reverse('quiz_result', args=[quiz.id]) if has_taken else None  # URL des résultats si pris
+            })
+        
+        datas = {
+            'quizzes': quizzes_with_status,  # Liste des quizzes avec leur statut et URL des résultats
+        }
+        return render(request, 'pages/fixed-student-quiz-list.html', datas)
+    
+    # Si aucune condition n'est remplie, redirigez vers l'administration
+    return redirect('/admin/')
 
-                           }
-                return render(request,'pages/fixed-student-quiz-list.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+
+
+
 
 @login_required(login_url = 'login')
 def profile(request):
@@ -583,48 +421,37 @@ def profile_posts(request):
             return redirect("/admin/")
     
 
-@login_required(login_url = 'login')
-def quiz_results(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+@login_required(login_url='login')
+def quiz_result(request, pk):
+    user = request.user
 
-                           }
-                return render(request,'pages/fixed-student-quiz-results.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+    # Vérification que l'utilisateur est un étudiant
+    if not hasattr(user, 'student_user'):
+        return redirect('dashboard')
 
-@login_required(login_url = 'login')
-def quizzes(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+    student = user.student_user
+    quiz = get_object_or_404(Quiz, pk=pk)
+    taken_quiz = get_object_or_404(TakenQuiz, student=student, quiz=quiz)
 
-                           }
-                return render(request,'pages/fixed-student-quizzes.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
-    
+    # Préparer les données des questions et réponses
+    questions = quiz.questions.all()
+    question_results = []
+    for question in questions:
+        student_answer = student.quiz_answers.filter(answer__question=question).first()
+        is_correct = student_answer.answer.is_correct if student_answer else False
+        question_results.append({
+            'text': question.text,
+            'is_correct': is_correct
+        })
+
+    return render(request, 'pages/fixed-student-quiz-results.html', {
+        'quiz': quiz,
+        'taken_quiz': taken_quiz,
+        'score': taken_quiz.score,
+        'percentage': taken_quiz.percentage,
+        'question_results': question_results,  # Passer les résultats des questions au template
+    })
+
 
 @login_required(login_url = 'login')
 def statement(request):
@@ -693,29 +520,100 @@ def take_course(request, slug):
         except Exception as e:
             print(e)
             print("3")
-            return redirect('my_courses')
+            return redirect('my-courses')
+
+
+
+@login_required(login_url='login')
+def skip_question(request, quiz_id, question_id):
+    user = request.user
+
+    # Vérifier que l'utilisateur est un étudiant
+    if not hasattr(user, 'student_user'):
+        return redirect('dashboard')
+
+    student = user.student_user
+    quiz = get_object_or_404(Quiz, id=quiz_id, status=True)
+
+    # Vérifier si le quiz a déjà été pris
+    if TakenQuiz.objects.filter(student=student, quiz=quiz).exists():
+        return redirect('dashboard')  # Ou afficher un message indiquant que le quiz est terminé
+
+    # Logique pour passer à la prochaine question
+    # Ici, on redirige simplement vers la vue `take_quiz` pour continuer
+    return redirect('take_quiz', pk=quiz_id)
    
 
-@login_required(login_url = 'login')
-def take_quiz(request):
-    if request.user.is_authenticated:
-        try:
-            try:
-                print("1")
-                if request.user.instructor:
-                    return redirect('dashboard')
-            except Exception as e:
-                print(e)
-                print("2")
-                if request.user.student_user:
-                    datas = {
+@login_required(login_url='login')
+def take_quiz(request, pk):
+    user = request.user
 
-                           }
-                return render(request,'pages/fixed-student-take-quiz.html',datas)
-        except Exception as e:
-            print(e)
-            print("3")
-            return redirect("/admin/")
+    if not hasattr(user, 'student_user'):
+        return redirect('dashboard')
+
+    student = user.student_user
+    quiz = get_object_or_404(Quiz, pk=pk, status=True)
+
+    if TakenQuiz.objects.filter(student=student, quiz=quiz).exists():
+        return redirect('dashboard')
+
+    total_questions = quiz.questions.count()
+    answered_questions = student.quiz_answers.filter(answer__question__quiz=quiz).values('answer__question').distinct().count()
+    progress_percentage = (answered_questions / total_questions) * 100 if total_questions > 0 else 0
+
+    unanswered_questions = quiz.questions.exclude(
+        pk__in=student.quiz_answers.filter(answer__question__quiz=quiz).values_list('answer__question__pk', flat=True)
+    ).order_by('id')
+
+    if unanswered_questions.exists():
+        current_question = unanswered_questions.first()
+        current_question_number = answered_questions + 1
+    else:
+        # Si aucune question n'est restante, rediriger vers les résultats
+        messages.success(request, "Vous avez terminé le quiz !")
+        return redirect('quiz_result', pk=quiz.pk)
+
+    if request.method == 'POST':
+        selected_answer_id = request.POST.get(str(current_question.id))
+        with transaction.atomic():
+            if selected_answer_id:
+                # Si une réponse est choisie, l'enregistrer
+                selected_answer = get_object_or_404(Answer, id=selected_answer_id)
+                StudentAnswer.objects.create(student=student, answer=selected_answer)
+            else:
+                # Si aucune réponse n'est choisie, enregistrer comme incorrect
+                wrong_answer = Answer.objects.filter(question=current_question, is_correct=False).first()
+                StudentAnswer.objects.create(student=student, answer=wrong_answer)
+
+        unanswered_questions = quiz.questions.exclude(
+            pk__in=student.quiz_answers.filter(answer__question__quiz=quiz).values_list('answer__question__pk', flat=True)
+        ).order_by('id')
+
+        if not unanswered_questions.exists():
+            # Si aucune autre question, enregistrez les résultats et redirigez
+            correct_answers = student.quiz_answers.filter(answer__question__quiz=quiz, answer__is_correct=True).count()
+            percentage = (correct_answers / total_questions) * 100 if total_questions > 0 else 0
+            TakenQuiz.objects.create(
+                student=student,
+                quiz=quiz,
+                score=correct_answers,
+                percentage=percentage,
+                date=now()
+            )
+            messages.success(request, "Vous avez terminé le quiz !")
+            return redirect('quiz_result', pk=quiz.pk)
+
+        return redirect('take_quiz', pk=quiz.pk)
+
+    return render(request, 'pages/fixed-student-take-quiz.html', {
+        'quiz': quiz,
+        'total_questions': total_questions,
+        'answered_questions': answered_questions,
+        'progress_percentage': progress_percentage,
+        'current_question': current_question,
+        'current_question_number': current_question_number,
+        'is_last_question': unanswered_questions.count() == 1,
+    })
 
 @login_required(login_url = 'login')
 def view_course(request):
@@ -737,6 +635,10 @@ def view_course(request):
             print(e)
             print("3")
             return redirect("/admin/")
+        
+
+
+        
     
 @login_required(login_url = 'login')
 def account_edit(request):
@@ -881,3 +783,38 @@ def post_forum_g(request):
         "forum": val,
         }
     return JsonResponse(data,safe=False)
+
+@login_required
+@csrf_exempt  # ou configurez la protection CSRF correctement
+def post_forum_reponse(request, slug):
+    if request.method == 'POST':
+        reponse_content = request.POST.get('reponse', '').strip()
+        try:
+            sujet = forum_models.Sujet.objects.get(slug=slug)
+        except forum_models.Sujet.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Le sujet est introuvable.'
+            })
+
+        if not reponse_content:
+            return JsonResponse({
+                'success': False,
+                'message': 'Le contenu de la réponse est vide.'
+            })
+
+        forum_models.Reponse.objects.create(
+            sujet=sujet,
+            user=request.user,
+            reponse=reponse_content
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Votre réponse a été publiée avec succès.'
+        })
+
+    return JsonResponse({
+        'success': False,
+        'message': 'Méthode non autorisée.'
+    })
